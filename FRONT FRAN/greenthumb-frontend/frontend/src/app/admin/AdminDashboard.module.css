@@ -1,0 +1,81 @@
+.container {
+    padding: 2rem;
+}
+
+.title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.125rem;
+    color: #4b5563;
+    margin-bottom: 2.5rem;
+}
+
+.cardsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.topProducts {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.topProducts h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.topProducts ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.topProducts li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.topProducts li:last-child {
+    border-bottom: none;
+}
+
+.productName {
+    font-weight: 500;
+    color: #374151;
+}
+
+.productSales {
+    font-weight: 600;
+    color: #10b981; /* Verde */
+    background-color: #d1fae5;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+}
+
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    font-size: 1.2rem;
+}
+
+.error {
+    color: #ef4444; /* Rojo */
+}

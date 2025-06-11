@@ -1,0 +1,46 @@
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.iconWrapper {
+    font-size: 2.5rem; /* Tamaño del ícono/emoji */
+    background-color: #eef2ff; /* Un fondo suave */
+    color: #4f46e5; /* Color del ícono */
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.textWrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280; /* Gris */
+}
+
+.value {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827; /* Negro suave */
+}
