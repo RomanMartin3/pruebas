@@ -114,24 +114,51 @@ public class CarritoController {
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody CheckoutRequestDTO checkoutRequest) {
         try {
-            // Ahora 'clienteRepository' está disponible
             Cliente cliente = clienteRepository.findById(checkoutRequest.getClienteId())
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + checkoutRequest.getClienteId()));
 
-            // La llamada al servicio ahora coincide con la firma corregida
             MercadoPagoPreferenceResponseDTO preference = carritoService.confirmarCarritoComoPedido(
                     cliente,
                     checkoutRequest.getMetodoPago(),
                     checkoutRequest.getNotasCliente()
             );
+
+            // Si todo va bien, devolvemos la preferencia
             return ResponseEntity.status(HttpStatus.CREATED).body(preference);
 
-        } catch (MPException | MPApiException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", "Error al comunicarse con el servicio de pagos."));
+            // --- MANEJO DE ERRORES MEJORADO ---
+
+        } catch (MPApiException e) {
+            // Este catch es específico para errores de la API de Mercado Pago
+            // Aquí sí podemos usar getApiResponse() para ver el error real.
+            System.err.println("Error de API de Mercado Pago. Respuesta completa: " + e.getApiResponse().getContent());
+            return ResponseEntity
+                    .status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of(
+                            "error", "Error al comunicarse con el servicio de pagos.",
+                            "details", e.getApiResponse().getContent()
+                    ));
+
+        } catch (MPException e) {
+            // Este catch es para otros errores del SDK de Mercado Pago (ej. configuración)
+            System.err.println("Error del SDK de Mercado Pago: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno con el servicio de pagos.", "details", e.getMessage()));
+
+        } catch (IllegalStateException e) {
+            // Para errores de lógica de negocio (carrito vacío, sin stock, etc.)
+            System.err.println("Error de estado ilegal: " + e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
         } catch (Exception e) {
+            // Para cualquier otro error inesperado
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Ocurrió un error inesperado en el servidor.", "details", e.getMessage()));
         }
     }
 

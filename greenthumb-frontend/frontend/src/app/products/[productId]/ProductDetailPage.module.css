@@ -1,0 +1,130 @@
+/* greenthumb/FrontEnd/src/app/products/[productId]/ProductDetailPage.module.css */
+.container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+    gap: 2rem;
+}
+
+.message,
+.messageError {
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 4rem;
+}
+
+.messageError {
+    color: var(--color-danger);
+}
+
+.imageGallery {
+    flex: 1;
+    min-width: 300px;
+}
+
+.mainImageContainer {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.mainImage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.thumbnailContainer {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.thumbnail {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.thumbnail:hover {
+    border-color: var(--color-text-subtle);
+}
+
+.selectedThumbnail {
+    border-color: var(--color-primary);
+}
+
+.productDetails {
+    flex: 1.5;
+    min-width: 300px;
+}
+
+.productName {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+    color: var(--color-text);
+}
+
+.productDescription {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-subtle);
+    margin-bottom: 1.5rem;
+}
+
+.productPrice {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+}
+
+.specificDetails {
+    background-color: var(--color-background);
+    border-left: 4px solid var(--color-primary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+}
+
+.stockInfo {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.outOfStock {
+    color: var(--color-danger);
+    font-weight: bold;
+}
+
+.addToCartButton {
+    padding: 1rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background-color: var(--color-success);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: flex-start;
+}
+
+.addToCartButton:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.addToCartButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

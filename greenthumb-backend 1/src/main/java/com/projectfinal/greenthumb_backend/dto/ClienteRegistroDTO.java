@@ -1,11 +1,12 @@
 package com.projectfinal.greenthumb_backend.dto;
 
 public class ClienteRegistroDTO {
-    // Nuevos campos que vienen de Auth0
+    // Nuevos campos que vienen de Auth0 (o simulados)
     private String auth0Id;
     private String email;
     private String nombre;
     private String apellido;
+    private String contrasena; // <-- ¡Añadir este campo!
 
     // Campos que vienen del formulario
     private String calle;
@@ -27,6 +28,8 @@ public class ClienteRegistroDTO {
     public void setNombre(String nombre) { this.nombre = nombre; }
     public String getApellido() { return apellido; }
     public void setApellido(String apellido) { this.apellido = apellido; }
+    public String getContrasena() { return contrasena; } // <-- ¡Añadir Getter!
+    public void setContrasena(String contrasena) { this.contrasena = contrasena; } // <-- ¡Añadir Setter!
     public String getCalle() { return calle; }
     public void setCalle(String calle) { this.calle = calle; }
     public String getNumero() { return numero; }

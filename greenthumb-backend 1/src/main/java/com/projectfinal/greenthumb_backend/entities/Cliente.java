@@ -1,4 +1,3 @@
-// greenthumb-backend/src/main/java/com/projectfinal/greenthumb_backend/entities/Cliente.java
 package com.projectfinal.greenthumb_backend.entities;
 
 import jakarta.persistence.*;
@@ -7,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import com.projectfinal.greenthumb_backend.listeners.ClienteEntityListener;
-import java.util.Set; // Added import
-import java.util.HashSet; // Added import
+import java.util.Set;
+import java.util.HashSet;
 
 
 @Entity
@@ -38,7 +37,6 @@ public class Cliente extends Usuario {
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)
     private List<Pedido> pedidos = new ArrayList<>();
 
-    // Corrected to use Set<CarritoItem> and named carritoItems
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<CarritoItem> carritoItems = new HashSet<>();
 
@@ -57,47 +55,7 @@ public class Cliente extends Usuario {
         this.codigoPostal = codigoPostal;
     }
 
-    // Getters y Setters (como los tenías)
-    public String getcalle() {
-        return calle;
-    }
-
-    public void setcalle(String calle) {
-        this.calle = calle;
-    }
-
-    public String getnumero() {
-        return numero;
-    }
-
-    public void setnumero(String numero) {
-        this.numero = numero;
-    }
-
-    public String getciudad() {
-        return ciudad;
-    }
-
-    public void setciudad(String ciudad) {
-        this.ciudad = ciudad;
-    }
-
-    public String getprovincia() {
-        return provincia;
-    }
-
-    public void setprovincia(String provincia) {
-        this.provincia = provincia;
-    }
-
-    public String getcodigoPostal() {
-        return codigoPostal;
-    }
-
-    public void setcodigoPostal(String codigoPostal) {
-        this.codigoPostal = codigoPostal;
-    }
-
+    // Getters y Setters (Corregidos para seguir la convención de JavaBeans)
     public String getCalle() {
         return calle;
     }
@@ -154,16 +112,15 @@ public class Cliente extends Usuario {
         this.pedidos = pedidos;
     }
 
-    // Corrected getter and setter for carritoItems
     public Set<CarritoItem> getCarritoItems() {
         return carritoItems;
     }
 
-    public void setItemsCarrito(Set<CarritoItem> carritoItems) { // Renamed from setItemsCarrito
+    public void setCarritoItems(Set<CarritoItem> carritoItems) { // Nombre del setter corregido
         this.carritoItems = carritoItems;
     }
 
-    // Optional convenience methods for CarritoItem (highly recommended)
+    // Métodos de conveniencia opcionales para CarritoItem (altamente recomendados)
     public void addCarritoItem(CarritoItem item) {
         this.carritoItems.add(item);
         item.setCliente(this);

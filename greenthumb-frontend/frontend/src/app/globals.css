@@ -1,0 +1,91 @@
+/* greenthumb/FrontEnd/src/app/globals.css */
+:root {
+  /* Tu nueva paleta de colores :) */
+  --color-primary: #1ab19f; /* Teal principal */
+  --color-primary-hover: #148a7d; /* Teal más oscuro para hover */
+  --color-secondary: #75c885; /* Verde secundario */
+  --color-accent: #dadb8b;   /* Amarillo-verde pálido */
+  
+  --color-background: #f8efeb; /* El tono más claro para el fondo general */
+  --color-surface: #ffffff;    /* Blanco puro para tarjetas y superficies */
+  --color-border: #e9e4e2;     /* Un borde suave que combina con el fondo */
+
+  /* Colores para texto y acciones estándar */
+  --color-text: #36454F;        /* Texto principal (Carbón oscuro) */
+  --color-text-subtle: #60707b; /* Texto secundario, un poco más claro */
+  --color-danger: #e53e3e;       /* Rojo estándar para errores */
+  --color-success: #28a745;      /* Verde estándar para éxito */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Versión de la paleta para modo oscuro */
+    --color-primary: #1ab19f;
+    --color-primary-hover: #20d3be;
+    --color-secondary: #75c885;
+    --color-accent: #dadb8b;
+    
+    --color-background: #1a202c; /* Un fondo oscuro y neutro */
+    --color-surface: #2d3748;   /* Superficie ligeramente más clara */
+    --color-border: #4a5568;    /* Borde para modo oscuro */
+    
+    --color-text: #f8efeb;      /* El color más claro de tu paleta para texto */
+    --color-text-subtle: #dadb8b;/* El amarillo pálido para texto sutil */
+    
+    --color-danger: #e53e3e;
+    --color-success: #28a745;
+  }
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--color-text);
+  background: var(--color-background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Estilos adicionales para los botones de login/logout en el header */
+.logoutButton {
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-subtle);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0; /* Para que no tenga padding adicional */
+  font-size: 1rem; /* Para que coincida con el tamaño de Link */
+  margin-left: 1rem; /* Espacio entre el email y el botón */
+}
+
+.logoutButton:hover {
+  color: var(--color-primary);
+}
+
+.userEmail {
+    color: var(--color-text);
+    font-weight: 500;
+    padding: 0 0.5rem;
+}
+
+.cartLink {
+    white-space: nowrap; /* Evita que el texto del carrito se rompa */
+    margin-left: 1rem; /* Espacio entre el login/logout y el carrito */
+}

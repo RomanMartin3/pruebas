@@ -1,0 +1,12 @@
+admin
+cart
+categories
+favicon.ico
+globals.css
+id
+layout.tsx
+lista.txt
+page.module.css
+page.tsx
+products
+providers.tsx

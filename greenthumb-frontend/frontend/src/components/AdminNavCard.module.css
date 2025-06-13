@@ -1,0 +1,29 @@
+/* greenthumb/FrontEnd/src/components/AdminNavCard.module.css */
+.card {
+    display: block;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: var(--card-background);
+    border: 1px solid var(--card-border);
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+    color: inherit;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: #0070f3;
+}
+
+.title {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+    color: #0070f3;
+}
+
+.description {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+}

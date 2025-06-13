@@ -9,6 +9,7 @@ public class CarritoItemDTO {
     private Double precioUnitario; // Para mostrar en el carrito
     private String imagenProductoUrl; // Para mostrar en el carrito
 
+
     // Constructor por defecto
     public CarritoItemDTO() {
     }

@@ -4,35 +4,44 @@ import com.projectfinal.greenthumb_backend.dto.ProductoCreacionRequestDTO;
 import com.projectfinal.greenthumb_backend.dto.ProductoDetalleDTO;
 import com.projectfinal.greenthumb_backend.dto.ProductoListadoDTO;
 import com.projectfinal.greenthumb_backend.dto.ProductoActualizacionRequestDTO;
-import com.projectfinal.greenthumb_backend.entities.Producto; // Para el request body
+import com.projectfinal.greenthumb_backend.dto.DetallesPlantaDTO; // Importar DetallesPlantaDTO
+import com.projectfinal.greenthumb_backend.dto.DetallesHerramientaDTO; // Importar DetallesHerramientaDTO
+import com.projectfinal.greenthumb_backend.dto.DetallesSemillaDTO; // Importar DetallesSemillaDTO
+import com.projectfinal.greenthumb_backend.entities.Administrador;
+import com.projectfinal.greenthumb_backend.repositories.AdministradorRepository;
 import com.projectfinal.greenthumb_backend.service.ProductoService;
-import org.springframework.http.HttpStatus; // Importar HttpStatus
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.math.BigDecimal;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/productos") // Simplificado, como hiciste con categorías
+@RequestMapping("/api/productos")
 @CrossOrigin("*")
 public class ProductoController {
 
     private final ProductoService productoService;
-    private static final Integer DEFAULT_ADMIN_ID = 1; // Temporal
-
+    private final AdministradorRepository administradorRepository;
 
     @Autowired
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoService productoService, AdministradorRepository administradorRepository) {
         this.productoService = productoService;
+        this.administradorRepository = administradorRepository;
     }
 
-    // GET /api/productos?page=0&size=10&sort=nombreProducto,asc&categoriaId=1&nombre=Helecho
+    private Integer getAdminGlobalId() {
+        return administradorRepository.findByEmail("admin@greenthumb.com")
+                .map(Administrador::getUsuarioId)
+                .orElseThrow(() -> new RuntimeException("Administrador no encontrado para crear/actualizar el producto."));
+    }
+
     @GetMapping
     public ResponseEntity<Page<ProductoListadoDTO>> listarProductos(
             @PageableDefault(size = 10, sort = "nombreProducto") Pageable pageable,
@@ -45,7 +54,6 @@ public class ProductoController {
         return ResponseEntity.ok(productos);
     }
 
-    // GET /api/productos/1
     @GetMapping("/{id}")
     public ResponseEntity<ProductoDetalleDTO> obtenerProductoPorId(@PathVariable Integer id) {
         Optional<ProductoDetalleDTO> productoDTO = productoService.getActiveProductoByIdDTO(id);
@@ -53,30 +61,57 @@ public class ProductoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-
-    @PostMapping
-    public ResponseEntity<?> crearProducto(@RequestBody ProductoCreacionRequestDTO requestDTO) {
-        // El ID del administrador debería obtenerse del contexto de seguridad una vez implementado
-        // Por ahora, usamos un ID por defecto si es necesario para las pruebas iniciales.
-        // El DEFAULT_ADMIN_ID ya está definido en tu clase.
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> crearProducto(
+            @RequestPart("producto") ProductoCreacionRequestDTO requestDTO,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen,
+            // --- NUEVOS PARAMETROS PARA DETALLES ESPECIFICOS ---
+            @RequestPart(value = "detallesPlanta", required = false) DetallesPlantaDTO detallesPlantaDTO,
+            @RequestPart(value = "detallesHerramienta", required = false) DetallesHerramientaDTO detallesHerramientaDTO,
+            @RequestPart(value = "detallesSemilla", required = false) DetallesSemillaDTO detallesSemillaDTO
+    ) {
         try {
-            ProductoDetalleDTO nuevoProductoDTO = productoService.createProducto(requestDTO, DEFAULT_ADMIN_ID);
+            Integer adminId = getAdminGlobalId();
+            // --- CAMBIO EN LA LLAMADA AL SERVICIO: PASAR LOS DETALLES ---
+            ProductoDetalleDTO nuevoProductoDTO = productoService.createProducto(
+                    requestDTO,
+                    imagen,
+                    detallesPlantaDTO,
+                    detallesHerramientaDTO,
+                    detallesSemillaDTO,
+                    adminId
+            );
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProductoDTO);
         } catch (IllegalArgumentException e) {
-            // Errores de validación de datos de entrada
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
-            // Otros errores, como "Categoría no encontrada" o problemas de base de datos
-            // Es buena idea loggear la excepción completa en el servidor para depuración
-            e.printStackTrace(); // Log para el desarrollador
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno al crear el producto: " + e.getMessage()));
         }
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<?> actualizarProducto(@PathVariable Integer id, @RequestBody ProductoActualizacionRequestDTO requestDTO) {
-        try {
-            Optional<ProductoDetalleDTO> productoActualizado = productoService.updateProductoDTO(id, requestDTO, DEFAULT_ADMIN_ID);
 
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> actualizarProducto(
+            @PathVariable Integer id,
+            @RequestPart("producto") ProductoActualizacionRequestDTO requestDTO,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen,
+            // --- NUEVOS PARAMETROS PARA DETALLES ESPECIFICOS ---
+            @RequestPart(value = "detallesPlanta", required = false) DetallesPlantaDTO detallesPlantaDTO,
+            @RequestPart(value = "detallesHerramienta", required = false) DetallesHerramientaDTO detallesHerramientaDTO,
+            @RequestPart(value = "detallesSemilla", required = false) DetallesSemillaDTO detallesSemillaDTO
+    ) {
+        try {
+            Integer adminId = getAdminGlobalId();
+            // --- CAMBIO EN LA LLAMADA AL SERVICIO: PASAR LOS DETALLES ---
+            Optional<ProductoDetalleDTO> productoActualizado = productoService.updateProductoDTO(
+                    id,
+                    requestDTO,
+                    imagen,
+                    detallesPlantaDTO,
+                    detallesHerramientaDTO,
+                    detallesSemillaDTO,
+                    adminId
+            );
             return productoActualizado.map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (IllegalArgumentException e) {
@@ -91,7 +126,8 @@ public class ProductoController {
     public ResponseEntity<?> borrarProducto(@PathVariable Integer id, @RequestBody(required = false) Map<String, String> payload) {
         String motivoBaja = (payload != null) ? payload.get("motivoBaja") : "Baja desde API";
         try {
-            boolean borradoExitoso = productoService.softDeleteProducto(id, motivoBaja, DEFAULT_ADMIN_ID);
+            Integer adminId = getAdminGlobalId();
+            boolean borradoExitoso = productoService.softDeleteProducto(id, motivoBaja, adminId);
             if (borradoExitoso) {
                 return ResponseEntity.ok().build();
             } else {

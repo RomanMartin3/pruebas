@@ -59,7 +59,8 @@ public class CarritoService {
     private final MovimientosStockRepository movimientosStockRepository;
     private final TiposMovimientoStockRepository tiposMovimientoStockRepository;
     private final AdministradorRepository administradorRepository;
-    private final MercadoPagoService mercadoPagoService; // CORRECCIÓN: Añadido
+    private final MercadoPagoService mercadoPagoService;
+
 
 
 
@@ -96,7 +97,7 @@ public class CarritoService {
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor que cero.");
         }
-
+        System.out.println("--- LOG: Iniciando agregarProductoAlCarrito ---");
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
         Producto producto = productoRepository.findById(productoId)
@@ -115,6 +116,9 @@ public class CarritoService {
                 .orElseThrow(() -> new RuntimeException("Precio actual del producto no encontrado para ID: " + productoId));
         BigDecimal precioAlAgregar = precioActual.getPrecioVenta();
 
+        System.out.println("LOG: Producto ID " + productoId + " tiene un precio de: " + precioAlAgregar); // <-- LOG CLAVE
+
+
         CarritoItem carritoItem;
         if (existingItem.isPresent()) {
             carritoItem = existingItem.get();
@@ -131,6 +135,7 @@ public class CarritoService {
     // 2. Obtener Carrito de un Cliente
     @Transactional(readOnly = true)
     public List<CarritoItemDTO> obtenerCarritoPorClienteId(Integer clienteId) {
+        System.out.println("--- LOG: Obteniendo carrito para cliente ID: " + clienteId + " ---");
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
 
@@ -190,12 +195,13 @@ public class CarritoService {
     // Nuevo método para confirmar el carrito como un pedido
     @Transactional
     public MercadoPagoPreferenceResponseDTO confirmarCarritoComoPedido(Cliente cliente, String metodoPago, String notasCliente) throws MPException, MPApiException {
-        // CORRECCIÓN: Usamos el ID del objeto Cliente que recibimos como parámetro.
+        System.out.println("--- LOG: Iniciando confirmarCarritoComoPedido para cliente ID: " + cliente.getUsuarioId() + " ---");
         List<CarritoItem> itemsDelCarrito = carritoItemRepository.findByClienteUsuarioId( cliente.getUsuarioId());
 
         if (itemsDelCarrito.isEmpty()) {
             throw new IllegalStateException("El carrito está vacío, no se puede crear un pedido.");
         }
+        System.out.println("LOG: Se encontraron " + itemsDelCarrito.size() + " items en el carrito.");
 
         EstadosPedido estadoPendiente = estadosPedidoRepository.findByNombreEstado("Pendiente")
                 .orElseThrow(() -> new RuntimeException("Estado 'Pendiente' no encontrado."));
@@ -212,6 +218,9 @@ public class CarritoService {
 
         List<DetallesPedido> detallesParaGuardar = new ArrayList<>();
         for (CarritoItem item : itemsDelCarrito) {
+            System.out.println("LOG: Procesando item de pedido: Producto ID " + item.getProducto().getProductoId() +
+                    ", Cantidad: " + item.getCantidad() +
+                    ", Precio guardado en carrito: " + item.getPrecioAlAgregar());
             Producto producto = item.getProducto();
             int cantidadComprada = item.getCantidad();
 
@@ -233,9 +242,12 @@ public class CarritoService {
 
         detallesPedidoRepository.saveAll(detallesParaGuardar);
 
+        pedidoGuardado.setDetalles(detallesParaGuardar);
+
         // Vaciar el carrito
         carritoItemRepository.deleteAll(itemsDelCarrito);
 
+        System.out.println("LOG: Pasando el pedido al servicio de Mercado Pago...");
         // CORRECCIÓN: El método ahora devuelve la preferencia de MercadoPago.
         return mercadoPagoService.createPreference(pedidoGuardado);
     }
@@ -243,19 +255,26 @@ public class CarritoService {
 
     // Método auxiliar para mapear CarritoItem a CarritoItemDTO
     private CarritoItemDTO mapToCarritoItemDTO(CarritoItem carritoItem) {
+        // Obtenemos el producto desde el item del carrito
+        Producto producto = carritoItem.getProducto();
+
         CarritoItemDTO dto = new CarritoItemDTO();
         dto.setClienteId(carritoItem.getCliente().getUsuarioId());
-        dto.setProductoId(carritoItem.getProducto().getProductoId());
+        dto.setProductoId(producto.getProductoId());
         dto.setCantidad(carritoItem.getCantidad());
-        dto.setNombreProducto(carritoItem.getProducto().getNombreProducto());
+        dto.setNombreProducto(producto.getNombreProducto());
 
-        Optional<PrecioProductoActual> precioActual = precioProductoActualRepository.findByProducto(carritoItem.getProducto());
-        precioActual.ifPresent(p -> dto.setPrecioUnitario(p.getPrecioVenta().doubleValue()));
+        Optional<PrecioProductoActual> precioActual = precioProductoActualRepository.findByProducto(producto);
+        precioActual.ifPresent(p ->{
+            System.out.println("LOG (mapToCarritoItemDTO): Mapeando producto ID " + producto.getProductoId() + " con precio: " + p.getPrecioVenta());
+         dto.setPrecioUnitario(p.getPrecioVenta().doubleValue());
+        });
 
-        List<ImagenesProducto> imagenes = carritoItem.getProducto().getImagenes();
-        if (imagenes != null && !imagenes.isEmpty()) {
-            dto.setImagenProductoUrl(imagenes.get(0).getUrlImagen());
+        String imageUrl = null;
+        if (producto.getImagenes() != null && !producto.getImagenes().isEmpty()) {
+            imageUrl = producto.getImagenes().get(0).getUrlImagen();
         }
+        dto.setImagenProductoUrl(imageUrl);
 
         return dto;
     }

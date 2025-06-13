@@ -22,6 +22,20 @@ public class UsuarioDTO {
         this.apellido = apellido;
         this.auth0Id = auth0Id;
         this.roles = roles;
+        // Se puede inicializar a true por defecto, o la lógica de si el registro está completo
+        // se manejará en el servicio al mapear la entidad a DTO.
+        this.registroCompleto = false; // Valor por defecto, el servicio lo seteará correctamente
+    }
+
+    // Nuevo constructor que incluye 'registroCompleto' (Recomendado para mayor claridad)
+    public UsuarioDTO(Integer id, String email, String nombre, String apellido, String auth0Id, List<String> roles, boolean registroCompleto) {
+        this.id = id;
+        this.email = email;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.auth0Id = auth0Id;
+        this.roles = roles;
+        this.registroCompleto = registroCompleto;
     }
 
     // Getters y Setters
@@ -39,6 +53,4 @@ public class UsuarioDTO {
     public void setRoles(List<String> roles) { this.roles = roles; }
     public boolean isRegistroCompleto() {return registroCompleto;}
     public void setRegistroCompleto(boolean registroCompleto) {this.registroCompleto = registroCompleto;}
-
-
 }

@@ -1,65 +1,92 @@
+
 package com.projectfinal.greenthumb_backend.service;
 
 import com.mercadopago.MercadoPagoConfig;
-import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.client.preference.*;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
-import com.projectfinal.greenthumb_backend.dto.MercadoPagoPreferenceRequestDTO;
 import com.projectfinal.greenthumb_backend.dto.MercadoPagoPreferenceResponseDTO;
+import com.projectfinal.greenthumb_backend.entities.Cliente;
+import com.projectfinal.greenthumb_backend.entities.DetallesPedido;
 import com.projectfinal.greenthumb_backend.entities.Pedido;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MercadoPagoService {
 
-    @Value("${mercadopago.access_token}")
+    @Value("${mercado_pago.access_token}")
     private String accessToken;
 
-    @Value("${mercadopago.client_id}")
-    private String clientId;
-
-    @Value("${mercadopago.client_secret}")
-    private String clientSecret;
+    @PostConstruct
+    public void init() {
+        MercadoPagoConfig.setAccessToken(accessToken);
+    }
 
     public MercadoPagoPreferenceResponseDTO createPreference(Pedido pedido) throws MPException, MPApiException {
-        MercadoPagoConfig.setAccessToken(accessToken);
+        System.out.println("--- LOG (MercadoPagoService): Creando preferencia de pago ---");
 
+        // 1. Convertimos los detalles del pedido en items para Mercado Pago
         List<PreferenceItemRequest> items = new ArrayList<>();
-        pedido.getDetalles().forEach(detalle -> {
+        for (DetallesPedido detalle : pedido.getDetalles()) {
+            BigDecimal precioUnitario = detalle.getPrecioUnitarioAlComprar();
+            System.out.println("LOG (MercadoPagoService): Añadiendo item a MP: " + detalle.getProducto().getNombreProducto() +
+                    ", Cantidad: " + detalle.getCantidadComprada() +
+                    ", Precio Unitario: " + precioUnitario);
+
+            if (precioUnitario == null || precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
+                System.err.println("LOG DE ERROR (MercadoPagoService): Omitiendo producto con precio cero o nulo: " + detalle.getProducto().getNombreProducto());
+                continue;
+            }
+
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .id(detalle.getProducto().getProductoId().toString())
                     .title(detalle.getProducto().getNombreProducto())
+                    .description("Producto de GreenThumb Market")
                     .quantity(detalle.getCantidadComprada())
-                    .unitPrice(detalle.getPrecioUnitarioAlComprar())
+                    .currencyId("ARS")
+                    .unitPrice(precioUnitario)
                     .build();
             items.add(itemRequest);
-        });
+        }
 
-        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success("http://localhost:3000/pago/exitoso") // URL a la que volver si el pago es exitoso
-                .failure("http://localhost:3000/pago/fallido")
-                .pending("http://localhost:3000/pago/pendiente")
+        if (items.isEmpty()) {
+            System.err.println("LOG DE ERROR (MercadoPagoService): No hay items con precio válido para enviar a Mercado Pago.");
+            throw new IllegalStateException("No se pueden procesar pedidos con un valor total de cero.");
+        }
+
+        // 2. --- CAMBIO CLAVE: AÑADIMOS DATOS DEL COMPRADOR (PAYER) ---
+        Cliente cliente = pedido.getCliente();
+        PreferencePayerRequest payer = PreferencePayerRequest.builder()
+                .name(cliente.getNombre())
+                .surname(cliente.getApellido())
+                .email(cliente.getEmail()) // El email es muy importante para MP
                 .build();
 
+        // 3. Configuramos las URLs de redirección
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success("http://localhost:3000/payment-success")
+                .failure("http://localhost:3000/payment-failure")
+                .pending("http://localhost:3000/payment-pending")
+                .build();
+
+        // 4. Creamos la preferencia incluyendo al comprador
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(items)
-                .externalReference(pedido.getPedidoId().toString()) // Asociamos el pago a nuestro ID de Pedido
-                .backUrls(backUrls)
-                .autoReturn("approved") // Redirige automáticamente en caso de pago aprobado
+                .payer(payer)
+                .backUrls(backUrls) // Las URLs de redirección son suficientes
                 .build();
 
-        PreferenceClient client = new PreferenceClient();
-        Preference preference = client.create(preferenceRequest);
+        PreferenceClient clientMP = new PreferenceClient();
+        Preference preference = clientMP.create(preferenceRequest);
 
-        return new MercadoPagoPreferenceResponseDTO(preference.getId(), preference.getInitPoint(), preference.getSandboxInitPoint());
+        System.out.println("LOG (MercadoPagoService): Preferencia creada con ID: " + preference.getId());
+        return new MercadoPagoPreferenceResponseDTO(preference.getId());
     }
 }
