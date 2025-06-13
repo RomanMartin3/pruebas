@@ -11,8 +11,8 @@ public class ProductoActualizacionRequestDTO {
     private Integer puntoDeReorden;
     private Integer categoriaId;
     private Integer tipoProductoId;
-    private BigDecimal nuevoPrecioVenta;
-    private BigDecimal nuevoCosto;
+   private BigDecimal precioVenta; // ANTES: nuevoPrecioVenta
+    private BigDecimal costo; 
 
     // Constructor vacío
     public ProductoActualizacionRequestDTO() {}
@@ -29,9 +29,9 @@ public class ProductoActualizacionRequestDTO {
     public void setCategoriaId(Integer categoriaId) { this.categoriaId = categoriaId; }
     public Integer getTipoProductoId() { return tipoProductoId; }
     public void setTipoProductoId(Integer tipoProductoId) { this.tipoProductoId = tipoProductoId; }
-    public BigDecimal getNuevoPrecioVenta() { return nuevoPrecioVenta; }
-    public void setNuevoPrecioVenta(BigDecimal nuevoPrecioVenta) { this.nuevoPrecioVenta = nuevoPrecioVenta; }
-    public BigDecimal getNuevoCosto() { return nuevoCosto; }
-    public void setNuevoCosto(BigDecimal nuevoCosto) { this.nuevoCosto = nuevoCosto; }
+    public BigDecimal getPrecioVenta() { return precioVenta; }
+    public void setPrecioVenta(BigDecimal precioVenta) { this.precioVenta = precioVenta; }
+    public BigDecimal getCosto() { return costo; }
+    public void setCosto(BigDecimal costo) { this.costo = costo; }
 
 }

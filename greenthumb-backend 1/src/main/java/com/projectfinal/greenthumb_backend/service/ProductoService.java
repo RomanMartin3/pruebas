@@ -222,9 +222,9 @@ public class ProductoService {
     public ProductoDetalleDTO createProducto(
             ProductoCreacionRequestDTO requestDTO,
             MultipartFile imagen,
-            DetallesPlantaDTO detallesPlantaDTO,         // <-- NUEVO PARAMETRO
-            DetallesHerramientaDTO detallesHerramientaDTO, // <-- NUEVO PARAMETRO
-            DetallesSemillaDTO detallesSemillaDTO,       // <-- NUEVO PARAMETRO
+            DetallesPlantaDTO detallesPlantaDTO,
+            DetallesHerramientaDTO detallesHerramientaDTO,
+            DetallesSemillaDTO detallesSemillaDTO,
             Integer adminId) {
 
         Optional<Administrador> adminOpt = administradorRepository.findById(adminId);
@@ -281,9 +281,8 @@ public class ProductoService {
 
         String tablaDetalleAsociada = tipoProducto.getTablaDetalleAsociada();
 
-        // --- MANEJO DE DETALLES ESPECIFICOS AHORA CON PARAMETROS DIRECTOS ---
         if ("detallesplanta".equalsIgnoreCase(tablaDetalleAsociada)) {
-            if (detallesPlantaDTO == null) { // <-- Se verifica el nuevo parámetro
+            if (detallesPlantaDTO == null) {
                 throw new IllegalArgumentException("Detalles de planta son requeridos para este tipo de producto.");
             }
             NivelesLuz nivelLuz = nivelesLuzRepository.findByDescripcionNivelLuz(detallesPlantaDTO.getNivelLuzDescripcion())
@@ -295,14 +294,14 @@ public class ProductoService {
                     nivelLuz, frecuenciaRiego, detallesPlantaDTO.isEsVenenosa(), detallesPlantaDTO.getCuidadosEspeciales());
             detallesPlantaRepository.save(dp);
         } else if ("detallesherramienta".equalsIgnoreCase(tablaDetalleAsociada)) {
-            if (detallesHerramientaDTO == null) { // <-- Se verifica el nuevo parámetro
+            if (detallesHerramientaDTO == null) {
                 throw new IllegalArgumentException("Detalles de herramienta son requeridos para este tipo de producto.");
             }
             DetallesHerramienta dh = new DetallesHerramienta(productoGuardado, detallesHerramientaDTO.getMaterialPrincipal(), detallesHerramientaDTO.getDimensiones(),
                     detallesHerramientaDTO.getPesoKG(), detallesHerramientaDTO.getUsoRecomendado(), detallesHerramientaDTO.isRequiereMantenimiento());
             detallesHerramientaRepository.save(dh);
         } else if ("detallessemilla".equalsIgnoreCase(tablaDetalleAsociada)) {
-            if (detallesSemillaDTO == null) { // <-- Se verifica el nuevo parámetro
+            if (detallesSemillaDTO == null) {
                 throw new IllegalArgumentException("Detalles de semilla son requeridos para este tipo de producto.");
             }
             DetallesSemilla ds = new DetallesSemilla(productoGuardado, detallesSemillaDTO.getEspecieVariedad(), detallesSemillaDTO.getEpocaSiembraIdeal(),
@@ -326,9 +325,9 @@ public class ProductoService {
             Integer id,
             ProductoActualizacionRequestDTO requestDTO,
             MultipartFile imagen,
-            DetallesPlantaDTO detallesPlantaDTO,         // <-- NUEVO PARAMETRO
-            DetallesHerramientaDTO detallesHerramientaDTO, // <-- NUEVO PARAMETRO
-            DetallesSemillaDTO detallesSemillaDTO,       // <-- NUEVO PARAMETRO
+            DetallesPlantaDTO detallesPlantaDTO,
+            DetallesHerramientaDTO detallesHerramientaDTO,
+            DetallesSemillaDTO detallesSemillaDTO,
             Integer adminId) {
 
         Optional<Producto> productoOpt = productoRepository.findById(id);
@@ -413,18 +412,19 @@ public class ProductoService {
             productoExistente.setTipoProducto(nuevoTipo);
         }
 
-        if (requestDTO.getNuevoPrecioVenta() != null) {
+        // --- INICIO DE CODIGO CORREGIDO ---
+        if (requestDTO.getPrecioVenta() != null) {
             PrecioProductoActual ppa = productoExistente.getPrecioActual();
             if (ppa == null) {
-                ppa = precioProductoActualRepository.findById(productoExistente.getProductoId()).orElse(new PrecioProductoActual(productoExistente, requestDTO.getNuevoPrecioVenta(), admin));
-                ppa.setPrecioVenta(requestDTO.getNuevoPrecioVenta());
+                ppa = precioProductoActualRepository.findById(productoExistente.getProductoId()).orElse(new PrecioProductoActual(productoExistente, requestDTO.getPrecioVenta(), admin));
+                ppa.setPrecioVenta(requestDTO.getPrecioVenta());
                 ppa.setAdministrador(admin);
                 ppa.setFechaInicioVigencia(LocalDateTime.now());
             } else {
-                if (!ppa.getPrecioVenta().equals(requestDTO.getNuevoPrecioVenta())) {
+                if (!ppa.getPrecioVenta().equals(requestDTO.getPrecioVenta())) {
                     PrecioProductoHistorial pph = new PrecioProductoHistorial(productoExistente, ppa.getPrecioVenta(), ppa.getFechaInicioVigencia(), LocalDateTime.now(), admin);
                     precioProductoHistorialRepository.save(pph);
-                    ppa.setPrecioVenta(requestDTO.getNuevoPrecioVenta());
+                    ppa.setPrecioVenta(requestDTO.getPrecioVenta());
                     ppa.setFechaInicioVigencia(LocalDateTime.now());
                     ppa.setAdministrador(admin);
                 }
@@ -433,18 +433,18 @@ public class ProductoService {
             productoExistente.setPrecioActual(ppa);
         }
 
-        if (requestDTO.getNuevoCosto() != null) {
+        if (requestDTO.getCosto() != null) {
             CostoProductoActual cpa = productoExistente.getCostoActual();
             if (cpa == null) {
-                cpa = costoProductoActualRepository.findById(productoExistente.getProductoId()).orElse(new CostoProductoActual(productoExistente, requestDTO.getNuevoCosto(), admin));
-                cpa.setPrecioCosto(requestDTO.getNuevoCosto());
+                cpa = costoProductoActualRepository.findById(productoExistente.getProductoId()).orElse(new CostoProductoActual(productoExistente, requestDTO.getCosto(), admin));
+                cpa.setPrecioCosto(requestDTO.getCosto());
                 cpa.setAdministrador(admin);
                 cpa.setFechaInicioVigencia(LocalDateTime.now());
             } else {
-                if (!cpa.getPrecioCosto().equals(requestDTO.getNuevoCosto())) {
+                if (!cpa.getPrecioCosto().equals(requestDTO.getCosto())) {
                     CostoProductoHistorial cph = new CostoProductoHistorial(productoExistente, cpa.getPrecioCosto(), cpa.getFechaInicioVigencia(), LocalDateTime.now(), admin);
                     costoProductoHistorialRepository.save(cph);
-                    cpa.setPrecioCosto(requestDTO.getNuevoCosto());
+                    cpa.setPrecioCosto(requestDTO.getCosto());
                     cpa.setFechaInicioVigencia(LocalDateTime.now());
                     cpa.setAdministrador(admin);
                 }
@@ -452,11 +452,11 @@ public class ProductoService {
             costoProductoActualRepository.save(cpa);
             productoExistente.setCostoActual(cpa);
         }
+        // --- FIN DE CODIGO CORREGIDO ---
 
         String tablaDetalleAsociadaActual = productoExistente.getTipoProducto() != null ? productoExistente.getTipoProducto().getTablaDetalleAsociada() : null;
 
-        // --- MANEJO DE DETALLES ESPECIFICOS AHORA CON PARAMETROS DIRECTOS ---
-        if ("detallesplanta".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesPlantaDTO != null) { // <-- Se verifica el nuevo parámetro
+        if ("detallesplanta".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesPlantaDTO != null) {
             NivelesLuz nivelLuz = nivelesLuzRepository.findByDescripcionNivelLuz(detallesPlantaDTO.getNivelLuzDescripcion())
                     .orElseThrow(() -> new RuntimeException("Nivel de luz no encontrado: " + detallesPlantaDTO.getNivelLuzDescripcion()));
             FrecuenciasRiego frecuenciaRiego = frecuenciasRiegoRepository.findByDescripcionFrecuenciaRiego(detallesPlantaDTO.getFrecuenciaRiegoDescripcion())
@@ -471,7 +471,7 @@ public class ProductoService {
             dp.setEsVenenosa(detallesPlantaDTO.isEsVenenosa());
             dp.setCuidadosEspeciales(detallesPlantaDTO.getCuidadosEspeciales());
             detallesPlantaRepository.save(dp);
-        } else if ("detallesherramienta".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesHerramientaDTO != null) { // <-- Se verifica el nuevo parámetro
+        } else if ("detallesherramienta".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesHerramientaDTO != null) {
             DetallesHerramienta dh = detallesHerramientaRepository.findById(productoExistente.getProductoId()).orElse(new DetallesHerramienta());
             dh.setProducto(productoExistente);
             dh.setMaterialPrincipal(detallesHerramientaDTO.getMaterialPrincipal());
@@ -480,7 +480,7 @@ public class ProductoService {
             dh.setUsoRecomendado(detallesHerramientaDTO.getUsoRecomendado());
             dh.setRequiereMantenimiento(detallesHerramientaDTO.isRequiereMantenimiento());
             detallesHerramientaRepository.save(dh);
-        } else if ("detallessemilla".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesSemillaDTO != null) { // <-- Se verifica el nuevo parámetro
+        } else if ("detallessemilla".equalsIgnoreCase(tablaDetalleAsociadaActual) && detallesSemillaDTO != null) {
             DetallesSemilla ds = detallesSemillaRepository.findById(productoExistente.getProductoId()).orElse(new DetallesSemilla());
             ds.setProducto(productoExistente);
             ds.setEspecieVariedad(detallesSemillaDTO.getEspecieVariedad());
